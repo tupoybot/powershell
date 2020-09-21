@@ -1,8 +1,4 @@
-﻿# VM vhd, snapshots and memory size
-# Alexey Kharichev, Smart Solutions, 2016
-# http://it.kg.ru
-
-
+# VM vhd, snapshots and memory size
 $vmtotalmem = 0
 $vmtotalhdd = 0
 $snapshotshdd = 0 
@@ -20,7 +16,7 @@ $hvtotalCPU = 0
 
 $str = @()
 
-$hosts =  Get-SCVMHost
+$hosts =  Get-SCVMHost  |  where {$_.HostCluster.Name -like "C-HV-[1,2].KAD.LOCAL"} #| where {$_.Name -ne "s-hv-01.kad.local"}
 
 Write-Host ("VMs with snapshots:")
 Write-Host
@@ -57,9 +53,14 @@ foreach ($hst in $hosts) {
     }
 $str += $hst.Name + ": " + $vmCPU + " / " +  $hst.LogicalCPUCount + " = " + "{0:N2}" -f ($vmCPU/($hst.LogicalCPUCount))
 }
-$hvc = Get-SCVMHostCluster
-$totalsan = ($hvc.SharedVolumes[0].Capacity -as [double]) / 1TB
-$avsan = ($hvc.SharedVolumes[0].FreeSpace -as [double]) / 1TB
+
+$hvcs = Get-SCVMHostCluster
+foreach ($hvc in $hvcs) {
+    foreach ($shv in $hvc.sharedvolumes) {
+        $totalsan += ($shv.capacity -as [double]) / 1TB
+        $avsan += ($shv.FreeSpace -as [double]) / 1TB
+        }
+    }
 
 
 
